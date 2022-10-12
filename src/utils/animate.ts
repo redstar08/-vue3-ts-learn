@@ -1,5 +1,5 @@
-type Direction = "top" | "left"
-type TweenjsEnum = "linear" | "easeIn" | "easeOut"
+type Direction = 'top' | 'left'
+type TweenjsEnum = 'linear' | 'easeIn' | 'easeOut'
 type Easing = (t: number, b: number, c: number, d: number) => number
 
 export const tweenjs = {
@@ -28,9 +28,9 @@ export class Animate {
     this.startTime = 0
     this.startPos = 0
     this.endPos = 0
-    this.propertyName = "top"
+    this.propertyName = 'top'
     this.duration = 300
-    this.easing = tweenjs["linear"]
+    this.easing = tweenjs['linear']
   }
 
   start(propertyName: Direction, endPos: number, duration: number, easing: TweenjsEnum): void {
@@ -64,6 +64,6 @@ export class Animate {
   }
 
   update(pos: number): void {
-    this.dom.style[this.propertyName] = pos + "px"
+    this.dom.style[this.propertyName] = pos + 'px'
   }
 }
