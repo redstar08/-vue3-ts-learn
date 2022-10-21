@@ -21,6 +21,7 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': 1,
     'comma-dangle': [1, 'always-multiline'],
     'max-len': [1, { code: 9999, tabWidth: 2 }],
+    'prefer-rest-params': 0,
     'import/no-unresolved': 0,
     'import/extensions': 0,
     'import/no-extraneous-dependencies': 0,
