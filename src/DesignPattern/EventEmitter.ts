@@ -1,5 +1,6 @@
 // 发布-订阅-模式
 const EventEmitter = {
+  _offlineEvents: {},
   _events: {},
   on(event: string, callback: Function) {
     console.log('EventEmitter->on', event)
@@ -8,6 +9,11 @@ const EventEmitter = {
     if (_this._events[event]) {
       _this._events[event].push(callback)
     } else {
+      const offlines = _this._offlineEvents[event]
+      if (offlines && offlines.length) {
+        offlines.forEach((fn: any) => fn && fn(callback))
+        _this._offlineEvents[event] = []
+      }
       _this._events[event] = [callback]
     }
     return _this
@@ -15,8 +21,14 @@ const EventEmitter = {
   emit(event: string, ...args: any[]) {
     console.log('EventEmitter->emit', event)
     const _this: any = this
-    const callbacks = [..._this._events[event]]
+    const callbacks = _this._events[event]
     if (!callbacks || callbacks.length === 0) {
+      ;(_this._offlineEvents[event] || (_this._offlineEvents[event] = [])).push((callback: Function) => {
+        console.log('_offlineEvents', event, ...args)
+        return callback && callback(...args)
+      })
+      console.log(_this._offlineEvents[event])
+
       return false
     }
     callbacks.forEach((fn: Function) => {
@@ -74,7 +86,6 @@ const user5 = (data: any) => {
     console.log('用户5，订阅的数据是：', data)
   }, 1000)
 }
-EventEmitter.on('article', user1)
 EventEmitter.on('article', user2)
 EventEmitter.on('article', user3)
 EventEmitter.on('article', user4)
@@ -83,6 +94,8 @@ EventEmitter.once('article', user5)
 
 EventEmitter.emit('article', { title: '《Javascript 入门到放弃》', price: '￥48' })
 EventEmitter.emit('article', { title: '《Javascript 百炼成仙》', price: '￥68' })
+EventEmitter.on('article', user1)
+EventEmitter.emit('article', { title: '《Javascript 百炼成仙123》', price: '￥98' })
 
 // 两种模式的关联和区别:
 // 1.发布订阅模式更灵活，是进阶版的观察者模式，指定对应分发。
