@@ -18,6 +18,7 @@ module.exports = {
     eqeqeq: [1, 'always'],
     camelcase: 0,
     'no-undef': 1,
+    'prefer-const': 1,
     '@typescript-eslint/no-unused-vars': 1,
     'comma-dangle': [1, 'always-multiline'],
     'max-len': [1, { code: 9999, tabWidth: 2 }],
