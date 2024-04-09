@@ -66,7 +66,7 @@ class promise {
       })
       // 保存当前失败的回调
       this.onRejectedCallbacks.push(() => {
-        onFulfilled(this.result)
+        onRejected(this.reason)
       })
     }
   }

@@ -7,6 +7,7 @@ import router from './router'
 
 import './assets/main.css'
 import './utils/plugins'
+import './plugins'
 
 const app = createApp(App)
 

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+    <title>事件循环 - 消息循环</title>
+    <link rel="stylesheet" type="text/css" href="" />
+  </head>
+
+  <body style="text-align: center">
+    <h1>事件循环（消息循环）</h1>
+    <p>事件循环是浏览器或者Node.js的基础，它是一种实现异步编程的机制。</p>
+    <p>事件循环是一个消息队列，用来处理和调度异步任务。</p>
+    <p>事件循环的执行顺序是：微任务队列 -> 交互队列 -> 定时队列 / 网络队列</p>
+    <p>微任务队列的优先级最高，交互队列的优先级高，定时队列和网络队列的优先级低。</p>
+    <p>微任务队列包括：Promise、MutationObserver、process.nextTick</p>
+    <p>交互队列包括：用户交互事件、DOM事件</p>
+    <p>定时队列包括：setTimeout、setInterval、setImmediate</p>
+    <p>网络队列包括：Ajax、fetch、Websocket</p>
+    <p>事件循环的执行过程是：先执行同步任务，再执行异步任务。</p>
+    <button id="btn">交互事件</button>
+
+    <script type="text/javascript">
+      const delay = (times) => {
+        const start = Date.now()
+        while (Date.now() - start < times) {}
+      }
+
+      const addUITask = () => {
+        console.log('add 交互事件')
+        btn.onclick = () => {
+          console.log('执行 交互事件')
+        }
+        delay(2000)
+      }
+
+      const addSetTimeout = () => {
+        console.log('add -> 定时事件')
+        setTimeout(() => {
+          console.log('执行 -> 定时事件')
+        }, 0)
+        delay(2000)
+      }
+
+      const addPromise = () => {
+        console.log('add -> Promise')
+        Promise.resolve('执行 -> Promise', 123).then(console.log)
+        delay(2000)
+      }
+
+      const addNetworkTask = () => {
+        console.log('add -> 网络事件')
+        fetch('http://localhost:3000/').then((response) => {
+          console.log('执行 -> 网络事件')
+          response.text().then((data) => {
+            console.log('结束 -> 网络事件')
+          })
+        })
+        delay(2000)
+      }
+      // 微任务队列 优先级最高
+      // 交互队列 优先级高
+      // 定时队列 优先级低
+      // 网络队列 优先级低
+      ;(async function () {
+        console.log('start ->', Date.now())
+
+        await new Promise((resolve) => {
+          console.log('start -> 阻塞的微任务')
+          setTimeout(() => {
+            resolve({ msg: 'micro task' })
+            console.log('end -> 阻塞的微任务')
+          }, 2000)
+        })
+
+        addNetworkTask()
+        addSetTimeout()
+        addUITask()
+        addPromise()
+
+        setTimeout(() => {
+          console.log('setTimeout -> 0')
+        }, 0)
+
+        console.log('end', Date.now())
+      })()
+    </script>
+  </body>
+</html>
