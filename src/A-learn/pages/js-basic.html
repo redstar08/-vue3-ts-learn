@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="" />
+  </head>
+
+  <body>
+    <h2>ES6 的新特性</h2>
+    <p>
+      1. **let 和 const 声明**：引入了块级作用域的变量声明，使用 `let` 声明的变量具有块级作用域，而 `const`
+      声明的变量是常量，不能被重新赋值。
+    </p>
+    <p>2. **箭头函数**：提供了一种更简洁的函数声明语法，可以更方便地定义匿名函数和简化函数体。</p>
+    <!-- <p>3. **模板字符串**：引入了模板字符串语法，可以使用反引号 (`) 来创建多行字符串和插入变量。</p> -->
+    <!-- <p>4. **解构赋值**：允许通过一种更简洁的语法从数组或对象中提取值并赋值给变量。</p> -->
+    <!-- <p>5. **默认参数**：可以为函数参数指定默认值，当调用函数时没有传入参数时，使用默认值。</p> -->
+    <!-- <p>6. **扩展运算符和剩余参数**：提供了扩展运算符 (`...`) 和剩余参数语法，方便处理数组和函数参数。</p> -->
+    <!-- <p>7. **类和继承**：引入了类和类继承的语法糖，更接近传统面向对象编程语言的写法。</p> -->
+    <p>8. **模块化**：引入了 `import` 和 `export` 关键字，提供了原生的模块化支持，方便模块化开发和代码组织。</p>
+    <p>9. **Promise 对象**：引入了 Promise 对象，提供了一种更优雅的异步编程解决方案，简化了回调地狱的问题。</p>
+    <!-- <p>10. **Map 和 Set 数据结构**：引入了 Map 和 Set 数据结构，提供了更灵活和高效的数据结构，方便处理键值对和集合。</p> -->
+    <p>11. **Symbol 数据类型**：引入了 Symbol 数据类型，用于创建唯一的标识符，可以用作对象的属性名。</p>
+    <!-- <p>12. **迭代器和生成器**：引入了迭代器和生成器的语法，提供了一种更灵活的迭代和生成序列的方式。</p> -->
+    <p>13. **Proxy 和 Reflect**：引入了 Proxy 和 Reflect 对象，提供了一种更灵活和强大的对象操作和拦截机制。</p>
+    <!-- <p>14. **新的数据类型和方法**：包括 TypedArray 数据类型、Object 的静态方法、String 的新方法等。</p> -->
+
+    <div style="text-align: center">
+      <h2>Proxy Vue 响应式原理</h2>
+      <h3 id="vueReactiveNode">vueReactiveNode</h3>
+      <button id="btnAdd">数组新增元素</button>
+      <button id="btnDelete">数组删除元素</button>
+      <button id="btnUpdate">对象更新</button>
+    </div>
+
+    <script type="text/javascript">
+      console.log(false == null) // false
+      const sym1 = Symbol(1)
+      const sym2 = Symbol.for(2)
+      var a = { [sym1]: 'sym1-Symbol(1)', [sym2]: 'sym2-Symbol(2)' }
+      console.log(a[sym1])
+      console.log(a[Symbol(2)])
+      console.log(a[Symbol.for(2)])
+
+      const state = reactive({
+        foo: 'bar',
+        bar: { a: 1, b: 2 },
+        baz: [1],
+      })
+      // 1.获取
+      state.foo // 获取foo:bar
+      // 2.设置已存在属性
+      state.foo = 'fooooooo' //  设置foo:fooooooo
+      // 3.设置不存在属性
+      state.bizz = 'bizz' //  设置 bizz:bizz
+      // 4.删除属性
+      delete state.bizz //  删除 bizz:true
+      state.bar.a = 10 // 获取bar:  {a: 1, b: 2} 设置a:  true
+      state.baz[2] = 20 // 获取baz:  [1] 获取 设置2:  20 true
+      state.baz.push(30) // 获取baz:  (3) [1, empty, 20] -> 获取push:  ƒ push() { [native code] } -> 获取length:  3 -> 设置3:  true -> 设置length:  4 true
+
+      function updateNode() {
+        vueReactiveNode.innerText = JSON.stringify(state)
+      }
+
+      // Vue 响应式原理
+      function reactive(obj) {
+        if (typeof obj !== 'object' && obj != null) {
+          return obj
+        }
+        // Proxy相当于在对象外层加拦截
+        const observed = new Proxy(obj, {
+          get(target, key, receiver) {
+            const val = Reflect.get(target, key, receiver)
+            // console.log(`获取${key}: `, val)
+            return typeof val === 'object' ? reactive(val) : val
+          },
+          set(target, key, value, receiver) {
+            const val = Reflect.set(target, key, value, receiver)
+            console.log(`设置${key}: `, value, val)
+            updateNode(target)
+            return typeof val === 'object' ? reactive(val) : val
+          },
+          deleteProperty(target, key) {
+            const val = Reflect.deleteProperty(target, key)
+            console.log(`删除${key}: `, val)
+            updateNode(target)
+            return typeof val === 'object' ? reactive(val) : val
+          },
+        })
+
+        return observed
+      }
+
+      btnAdd.onclick = () => {
+        state.baz.push(Math.floor(Math.random() * 100))
+      }
+      btnDelete.onclick = () => {
+        state.baz.pop()
+      }
+      btnUpdate.onclick = () => {
+        state.bar.a++
+      }
+
+      function deepClone(obj, visited = new WeakMap()) {
+        if (obj === null || typeof obj !== 'object') {
+          return obj // 如果是基本数据类型或 null，直接返回
+        }
+
+        if (visited.has(obj)) {
+          return visited.get(obj) // 如果已经拷贝过该对象，直接返回拷贝后的对象
+        }
+
+        const clone = new obj.constructor(obj)
+
+        visited.set(obj, clone) // 将原对象和拷贝后的对象关联起来
+
+        for (let key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            clone[key] = deepClone(obj[key], visited) // 递归拷贝嵌套对象
+          }
+        }
+
+        return clone
+      }
+
+      const obj1 = new Date('2024-04-01')
+      obj1.a = 1
+      const _obj1 = deepClone(obj1)
+      console.dir(_obj1)
+      console.log(_obj1 === obj1)
+    </script>
+
+    <script type="text/javascript">
+      console.log('---------------------优雅的分割线---------------------')
+      // 继承的几种方式
+      // 一、原型链继承
+      // 大致思路：将子类的 prototype 指向父类的实例
+      const PrototypeExtends = () => {
+        function Father(name) {
+          this.name = name || 'Father'
+          this.colors = ['red', 'blue', 'green']
+        }
+
+        Father.prototype.sayName = function () {
+          console.log(this.name)
+          return this.name
+        }
+
+        function Son(name, age) {
+          this.myName = name
+          this.age = age
+        }
+        // 继承
+        Son.prototype = new Father()
+        // Son.prototype.constructor = Son
+        // 必须先继承，再扩展，因为重写了 prototype
+        Son.prototype.sayMyName = function () {
+          console.log(this.myName)
+          return this.myName
+        }
+
+        const son = new Son('Son', 18)
+        son.sayName()
+        son.sayMyName()
+        console.log(son, son.__proto__.__proto__ === Father.prototype, son.__proto__.__proto__)
+      }
+      console.log('---------------------一、原型链继承---------------------')
+      PrototypeExtends()
+      console.log('---------------------一、原型链继承---------------------')
+      // 缺点：
+      // 1.所有子类实例共享 引用类型 的属性(colors)
+      // 2.创建子类实例时，无法向父类构造函数传参(name)
+
+      // 二、借用构造函数
+      // 大致思路：在子类中借用并执行父类构造函数
+      const ConstructorExtends = () => {
+        function Father(name) {
+          this.name = name || 'Father'
+          this.colors = ['red', 'blue', 'green']
+          this.sayName = function () {
+            console.log(this.name)
+            return this.name
+          }
+        }
+
+        // Son 无法继承 Father.prototype
+        // Father.prototype.sayName = function () {
+        //   console.log(this.name)
+        //   return this.name
+        // }
+
+        function Son(name, age) {
+          // 继承
+          Father.call(this, name)
+          this.age = age
+        }
+
+        const son = new Son('Son', 18)
+        son.sayName()
+        console.log(son)
+      }
+      console.log('---------------------二、借用构造函数---------------------')
+      ConstructorExtends()
+      console.log('---------------------二、借用构造函数---------------------')
+      // 缺点：
+      // 1.所有子类实例都生成自身的公共函数，没有做到函数共享
+
+      // 三、组合继承
+      // 大致思路：原型属性和方法通过原型链继承，实例属性通过借用构造函数继承
+      // 避免了原型链和借用构造函数的缺点，融合了两者的优点，是最常用的 JavaScript 的继承模式
+      const CombineExtends = () => {
+        function Father(name) {
+          this.name = name || 'Father'
+          this.colors = ['red', 'blue', 'green']
+        }
+
+        Father.prototype.sayName = function () {
+          console.log(this.name)
+          return this.name
+        }
+
+        function Son(name, age) {
+          // 继承实例属性
+          Father.call(this, name)
+          this.age = age
+        }
+        // 继承原型方法
+        Son.prototype = new Father()
+        Son.prototype.constructor = Son
+        // 必须先继承，再扩展，因为重写了 prototype
+        Son.prototype.sayAge = function () {
+          console.log(this.age)
+          return this.age
+        }
+
+        const son = new Son('Son', 18)
+        son.sayName()
+        son.sayAge()
+        console.log(son)
+      }
+      console.log('---------------------三、组合继承---------------------')
+      CombineExtends()
+      console.log('---------------------三、组合继承---------------------')
+      // 缺点：
+      // 1.需要调用 2次 父构造函数
+
+      // 四、原型式继承
+      // 大致思路：通过 Object.create() 进行浅拷贝
+      const PrototypalExtends = () => {
+        // 与 Object.create() 的行为相同
+        function createObject(object) {
+          function Fn() {}
+          // 继承 object
+          Fn.prototype = object
+          return new Fn()
+        }
+
+        const person = {
+          name: 'redstar08',
+          friends: ['linju', 'zhouyu', 'xiaohong'],
+        }
+        const p1 = createObject(person)
+        // const p1 = Object.create(person)
+        p1.name = 'p1'
+        p1.friends.push('p1')
+
+        const p2 = createObject(person)
+        // const p2 = Object.create(person)
+        p2.name = 'p2'
+        p2.friends.push('p2')
+
+        console.log(person, p1, p2)
+      }
+      console.log('---------------------四、原型式继承---------------------')
+      PrototypalExtends()
+      console.log('---------------------四、原型式继承---------------------')
+      // 缺点：
+      // 1.只适合继承某个对象的属性和方法，引用类型 会共享
+
+      // 五、寄生式继承
+      // 大致思路：通过 原型式继承 封装成一个工厂函数，在工厂函数中通过某种方式增强这个对象
+      const ParasiticExtends = () => {
+        // 封装工厂函数
+        function createPerson(person) {
+          // 原型式继承
+          const clonePerson = Object.create(person)
+          // 增强对象
+          clonePerson.sayName = function () {
+            console.log(this.name)
+            return this.name
+          }
+          return clonePerson
+        }
+
+        const person = {
+          name: 'redstar08',
+          friends: ['linju', 'zhouyu', 'xiaohong'],
+        }
+        const p1 = createPerson(person)
+        p1.name = 'p1'
+        p1.friends.push('p1')
+        p1.sayName()
+
+        const p2 = createPerson(person)
+        p2.name = 'p2'
+        p2.friends.push('p2')
+        p2.sayName()
+
+        console.log(person, p1, p2)
+      }
+      console.log('---------------------五、寄生式继承---------------------')
+      ParasiticExtends()
+      console.log('---------------------五、寄生式继承---------------------')
+      // 缺点：
+      // 1.只适合继承某个对象的属性和方法，引用类型 会共享
+      // 2.同构造函数类似，无法做到函数复用
+
+      // 六、寄生组合式继承（圣杯模式）
+      // 大致思路：通过 原型式继承 继承父类的方法，通过构造函数继承实例属性
+      const InheritPrototype = () => {
+        const Inherit = function (Son, Father) {
+          // 创建 super 类原型的副本
+          // function Fn() {}
+          // Fn.prototype = Father.prototype
+          // const prototype = new Fn()
+          const prototype = Object.create(Father.prototype)
+          // 增强对象
+          prototype.constructor = Son
+          prototype.uber = Father
+          // 继承
+          Son.prototype = prototype
+        }
+
+        function Father(name) {
+          this.name = name || 'Father'
+          this.colors = ['red', 'blue', 'green']
+        }
+
+        Father.prototype.sayName = function () {
+          console.log(this.name)
+          return this.name
+        }
+
+        function Son(name, age) {
+          Father.call(this, name)
+          this.age = age
+        }
+
+        // 继承
+        Inherit(Son, Father)
+        // 扩展
+        Son.prototype.sayAge = function () {
+          console.log(this.age)
+          return this.age
+        }
+
+        const son = new Son('Son', 18)
+        son.sayName()
+        son.sayAge()
+        son.colors.push('yellow')
+        console.log(son, new Son('Son1', 19))
+      }
+      // 圣杯模式，最完美的继承方案
+      console.log('---------------------六、寄生组合式继承（圣杯模式）---------------------')
+      InheritPrototype()
+      console.log('---------------------六、寄生组合式继承（圣杯模式）---------------------')
+    </script>
+  </body>
+</html>

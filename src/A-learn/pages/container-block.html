@@ -19,9 +19,19 @@
 
       .fixed {
         position: fixed;
-        top: 0; 
+        top: 0;
         left: 0;
         width: 100px;
+        height: 100px;
+        background-color: pink;
+      }
+      .float-demo {
+        display: block;
+        border: 1px solid #1d1d1d;
+      }
+
+      .float-l {
+        float: left;
         height: 100px;
         background-color: pink;
       }
@@ -32,6 +42,11 @@
     <div class="absolute">
       absolute
       <div class="fixed">fixed</div>
+    </div>
+
+    <div class="float-demo">
+      其他内容-用 flex 和 grid 布局（会自动包含浮动元素的高）
+      <div class="float-l">浮动的元素</div>
     </div>
 
     <script type="text/javascript" src=""></script>
