@@ -45,6 +45,13 @@
       console.log(a[Symbol(2)])
       console.log(a[Symbol.for(2)])
 
+      class MyClass {
+        [Symbol.toStringTag] = 'MyClass'
+        constructor() {}
+      }
+
+      console.log('Object.prototype.toString.call(MyClass)', Object.prototype.toString.call(MyClass))
+
       const state = reactive({
         foo: 'bar',
         bar: { a: 1, b: 2 },
@@ -368,6 +375,101 @@
       console.log('---------------------六、寄生组合式继承（圣杯模式）---------------------')
       InheritPrototype()
       console.log('---------------------六、寄生组合式继承（圣杯模式）---------------------')
+    </script>
+
+    <script type="text/javascript">
+      name = 'global'
+      const obj = { name: 'obj' }
+
+      function sayHello(...args) {
+        this.a = 1
+        console.log('Hello, ', this.name, args)
+      }
+
+      sayHello()
+
+      // 手动实现 call 函数
+      const myCall = (fn, thisArg, ...args) => {
+        console.log('------myCall-------')
+        thisArg = thisArg || window
+        const key = Symbol('myCall')
+        Reflect.set(thisArg, key, fn)
+        const res = thisArg[key](...args)
+        Reflect.defineProperty(thisArg, key, {})
+        return res
+      }
+      Function.prototype.myCall = function (thisArg, ...args) {
+        console.log('------Function.prototype.myCall-------')
+        thisArg = thisArg || window
+        const key = Symbol('fn')
+        Reflect.set(thisArg, key, this)
+        const res = thisArg[key](...args)
+        Reflect.defineProperty(thisArg, key, {})
+        return res
+      }
+      myCall(sayHello, obj, 1, 2, 3)
+      sayHello.myCall(obj, 1, 2, 3)
+
+      // 手动实现 apply 函数
+      const myApply = (fn, thisArg, args) => {
+        console.log('------myApply-------')
+        thisArg = thisArg || window
+        args = [...args]
+        const key = Symbol('fn')
+        Reflect.set(thisArg, key, fn)
+        const res = thisArg[key](...args)
+        Reflect.defineProperty(thisArg, key, {})
+        return res
+      }
+      Function.prototype.myApply = function (thisArg, args) {
+        console.log('------Function.prototype.myApply-------')
+        thisArg = thisArg || window
+        args = [...args]
+        const key = Symbol('fn')
+        Reflect.set(thisArg, key, this)
+        const res = thisArg[key](...args)
+        Reflect.defineProperty(thisArg, key, {})
+        return res
+      }
+      myApply(sayHello, obj, [1, 2], 3)
+      sayHello.myApply(obj, [1, 2], 3)
+
+      // 手动实现 bind 函数
+      const myBind = (fn, thisArg) => {
+        console.log('------myBind-------')
+        return function (...args) {
+          thisArg = thisArg || window
+          const key = Symbol('fn')
+          Reflect.set(thisArg, key, fn)
+          const res = thisArg[key](...args)
+          Reflect.defineProperty(thisArg, key, {})
+          return res
+        }
+      }
+      Function.prototype.myBind = function (thisArg = window, ...args) {
+        console.log('------Function.prototype.myBind-------')
+        const fn = this
+        function boundFn() {
+          thisArg = thisArg || this instanceof boundFn ? this : thisArg
+          console.log('------当成构造函数执行会导致 thisArg 指向 new 出来的对象-----')
+          console.log('------导致内存泄漏，无法删除 Symbol(fn)-----')
+          // const key = Symbol('fn')
+          // Reflect.set(thisArg, key, fn)
+          // const res = thisArg[key](...args, ...arguments)
+          // Reflect.defineProperty(thisArg, key, {})
+          return fn.apply(thisArg, [...args, ...arguments])
+        }
+        // 保留原函数的原型链
+        boundFn.prototype = Object.create(fn.prototype)
+        return boundFn
+      }
+      const mybind1 = myBind(sayHello, obj)
+      mybind1(1, 2, 3)
+      const mybind2 = sayHello.myBind(obj, 1)
+      mybind2(2, 3)
+      console.dir(mybind2)
+      console.log('------当成构造函数执行会导致 thisArg 指向 new 出来的对象，所以无法删除 Symbol(fn)-----')
+      console.log('new mybind2()', new mybind2())
     </script>
   </body>
 </html>
