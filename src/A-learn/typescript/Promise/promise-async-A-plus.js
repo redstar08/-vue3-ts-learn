@@ -3,26 +3,26 @@ const PENDING = 'PENDING'
 const FULFILLED = 'FULFILLED '
 const REJECTED = 'REJECTED'
 
-const resolvePromise = (promise2, result, resolve, reject) => {
+const promiseResolutionProcedure = (promise, x, resolve, reject) => {
   // 自己等待自己完成是错误的实现，用一个类型错误，结束掉 promise
-  if (promise2 === result) {
+  if (promise === x) {
     return reject(new TypeError('Chaining cycle detected for promise #<Promise>'))
   }
   let called = undefined
   // 对象需要判断一下是不是 Promise 对象，或者 thenable 对象
-  if ((typeof result === 'object' && result != null) || typeof result === 'function') {
+  if ((typeof x === 'object' && x != null) || typeof x === 'function') {
     try {
-      const then = result.then
-      // 如果 result.then 是一个函数，就说明是 Promise 对象，或者 thenable 对象
+      const then = x.then
+      // 如果 x.then 是一个函数，就说明是 Promise 对象，或者 thenable 对象
       if (typeof then === 'function') {
-        // 不要写成 result.then，直接 then.call 就可以了 因为 x.then 会再次取值，Object.defineProperty
+        // 不要写成 x.then，直接 then.call 就可以了 因为 x.then 会再次取值，Object.defineProperty
         then.call(
-          result,
-          (promise3) => {
+          x,
+          (y) => {
             if (called) return
             called = true
             // 递归解析的过程（因为可能 promise 中还有 promise）直到是普通值为止
-            resolvePromise(promise2, promise3, resolve, reject)
+            promiseResolutionProcedure(promise, y, resolve, reject)
           },
           (reason) => {
             if (called) return
@@ -32,7 +32,7 @@ const resolvePromise = (promise2, result, resolve, reject) => {
         )
       } else {
         // 如果不是 function, 那么说明只是普通对象，并不是 Promise 对象，或者 thenable 对象, 当普通值处理
-        resolve(result)
+        resolve(x)
       }
     } catch (error) {
       if (called) return
@@ -41,7 +41,7 @@ const resolvePromise = (promise2, result, resolve, reject) => {
     }
   } else {
     // 不是对象，那就是普通值或者函数，直接 resolve 作为结果
-    resolve(result)
+    resolve(x)
   }
 }
 
@@ -109,7 +109,7 @@ class promise {
         setTimeout(() => {
           try {
             const result = onFulfilled(this.result)
-            resolvePromise(promise2, result, resolve, reject)
+            promiseResolutionProcedure(promise2, result, resolve, reject)
             // resolve(result)
           } catch (error) {
             reject(error)
@@ -123,7 +123,7 @@ class promise {
         setTimeout(() => {
           try {
             const reason = onRejected(this.reason)
-            resolvePromise(promise2, reason, resolve, reject)
+            promiseResolutionProcedure(promise2, reason, resolve, reject)
             // reject(reason)
           } catch (error) {
             reject(error)
@@ -138,7 +138,7 @@ class promise {
           setTimeout(() => {
             try {
               const result = onFulfilled(this.result)
-              resolvePromise(promise2, result, resolve, reject)
+              promiseResolutionProcedure(promise2, result, resolve, reject)
               // resolve(result)
             } catch (error) {
               reject(error)
@@ -150,7 +150,7 @@ class promise {
           setTimeout(() => {
             try {
               const reason = onRejected(this.reason)
-              resolvePromise(promise2, reason, resolve, reject)
+              promiseResolutionProcedure(promise2, reason, resolve, reject)
               // reject(reason)
             } catch (error) {
               reject(error)
