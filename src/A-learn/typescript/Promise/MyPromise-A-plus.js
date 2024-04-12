@@ -17,8 +17,6 @@
 
   /* 微任务中将运行的代码 */
   const runMicroTask = (task) => {
-    setTimeout(task, 0)
-    return
     if (typeof process !== 'undefined' && typeof process.nextTick === 'function') {
       process.nextTick(task)
     } else if (typeof window === 'object' && typeof MutationObserver === 'function') {
@@ -48,25 +46,15 @@
       this.status = PENDING
       //初始值为 undefined
       this.value = undefined
-      // 存放成功的回调
-      this.onResolvedCallbacks = []
-      // 存放失败的回调
-      this.onRejectedCallbacks = []
+      // 存放 then 注册的回调函数
+      this.queueTasks = []
 
       const resolve = (value) => {
-        if (this.status === PENDING) {
-          this.status = FULFILLED
-          this.value = value
-          this.onResolvedCallbacks.forEach((callback) => callback())
-        }
+        this.runQueueTask(FULFILLED, value)
       }
 
       const reject = (reason) => {
-        if (this.status === PENDING) {
-          this.status = REJECTED
-          this.value = reason
-          this.onRejectedCallbacks.forEach((callback) => callback())
-        }
+        this.runQueueTask(REJECTED, reason)
       }
 
       try {
@@ -76,25 +64,18 @@
       }
     }
 
-    taskSettled(status, value) {
+    runQueueTask(status, value) {
       if (this.status === PENDING) {
         this.status = status
         this.value = value
-        // while (this.queueTasks.length) {
-        //   const { resolveTask, rejectTask } = this.queueTasks.unshift()
-        //   if (this.status === FULFILLED) {
-        //     resolveTask()
-        //   }
-        //   if (this.status === REJECTED) {
-        //     rejectTask()
-        //   }
-        // }
-        if (status === FULFILLED) {
-          this.onResolvedCallbacks.forEach((callback) => callback())
-        }
-
-        if (status === REJECTED) {
-          this.onRejectedCallbacks.forEach((callback) => callback())
+        while (this.queueTasks.length) {
+          const { resolveTask, rejectTask } = this.queueTasks.shift()
+          if (this.status === FULFILLED) {
+            resolveTask()
+          }
+          if (this.status === REJECTED) {
+            rejectTask()
+          }
         }
       }
     }
@@ -214,8 +195,10 @@
         }
 
         if (this.status === PENDING) {
-          this.onResolvedCallbacks.push(resolveTask)
-          this.onRejectedCallbacks.push(rejectTask)
+          this.queueTasks.push({
+            resolveTask,
+            rejectTask,
+          })
         }
       })
 
