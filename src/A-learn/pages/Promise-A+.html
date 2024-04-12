@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="" />
+  </head>
+
+  <body>
+    <script type="text/javascript">
+      /**
+       * MDN https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise
+       * ES6 的 Promsie 和 Promise A+ 规范不一样，一个是官方标准，一个是社区规范它们都是 thenable 对象
+       */
+      class DemoPromise {}
+      /**
+       * 此方法是 Promise.prototype.then(undefined, onRejected) 的一种简写形式。
+       */
+      DemoPromise.prototype.catch = function (onRejected) {
+        // return this.then(undefined, onRejected)
+        return Promise.prototype.then.call(this, undefined, onRejected)
+      }
+      /**
+       * 立即返回一个新的 Promise。无论当前 promise 的状态如何，此新的 promise 在返回时始终处于待定（pending）状态。
+       * 如果 onFinally 抛出错误或返回被拒绝的 promise，则新的 promise 将使用该值进行拒绝。
+       * 否则，新的 promise 将以与当前 promise 相同的状态敲定（settled）。
+       */
+      DemoPromise.prototype.finally = function (onFinally) {
+        // return this.then(
+        Promise.prototype.then.call(
+          this,
+          (value) => Promise.resolve(onFinally()).then(() => value),
+          (reason) =>
+            Promise.resolve(onFinally()).then(() => {
+              throw reason
+            }),
+        )
+      }
+      /**
+       * 一个由给定值解决的 Promise，或者如果该值为一个 Promise 对象，则返回该对象。
+       * 如果传入的是一个非 thenable 对象的值，则返回的 Promise 对象将以该值兑现。
+       * 如果传入的是一个 thenable 对象，则通过传入一对解决函数作为参数调用该 thenable 对象的 then 方法后得到的状态将作为返回的 Promise 对象的状态。
+       * （但是因为原生的 Promise 直接通过 Promise.resolve() 调用，而不创建封装对象，所以不会在原生 Promise 上调用 then 方法。）
+       * 如果 resolver 函数接收到另一个 thenable 对象，则会再次进行解决，以确保 Promise 对象的最终兑现值永远不会是 thenable 对象。
+       */
+      DemoPromise.resolve = function (value) {
+        if (value instanceof Promise) {
+          return value
+        }
+        if (typeof value === 'object' && typeof value.then === 'function') {
+          return new Promise((resolve, reject) => {
+            value.then(resolve, reject)
+          })
+        }
+        return new Promise((resolve) => resolve(value))
+      }
+      /**
+       * 返回一个已拒绝（rejected）的 Promise，拒绝原因为给定的参数。
+       * Promise.reject() 实际上相当于 new Promise((resolve, reject) => reject(reason)) 的简写形式。
+       * 与 Promise.resolve() 不同，即使 reason 已经是一个 Promise 对象，Promise.reject() 方法也始终会将其封装在一个新的 Promise 对象中。
+       */
+      DemoPromise.reject = function (reason) {
+        return new Promise((resolve, reject) => reject(reason))
+      }
+    </script>
+    <script type="text/javascript"></script>
+  </body>
+</html>

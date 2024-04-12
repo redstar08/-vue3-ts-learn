@@ -137,3 +137,14 @@ const promise1 = new promise((resolve, reject) => {
       return err
     },
   )
+
+promise.deferred = function () {
+  const defer = {}
+  defer.promise = new promise((resolve, reject) => {
+    defer.resolve = resolve
+    defer.reject = reject
+  })
+  return defer
+}
+
+module.exports = promise
