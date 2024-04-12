@@ -38,50 +38,8 @@
   /**
    * 检测 Promise 对象
    */
-  const isPromiseOrThenable = (x) => {
-    return x !== null && typeof x === 'object' && typeof x.then === 'function'
-  }
-
-  const promiseResolutionProcedure = (promise, x, resolve, reject) => {
-    // 2.3.1 如果promise和x引用同一个对象，则以TypeError为原因拒绝promise。
-    if (promise === x) {
-      return reject(new TypeError('Chaining cycle detected for promise <Promise>'))
-    }
-
-    let called = undefined
-    // 2.3.2 如果x是一个promise，采用其状态 -> 此处与 2.3.3 合并
-    // 2.3.3 否则，如果x是一个对象或函数：
-    if ((typeof result === 'object' && result != null) || typeof x === 'function') {
-      try {
-        const then = x.then
-        // 2.3.3.3 如果then是一个函数，则以x作为this，第一个参数为resolvePromise，第二个参数为rejectPromise调用它
-        if (typeof then === 'function') {
-          then.call(
-            x,
-            (y) => {
-              if (called) return
-              called = true
-              // 递归解析的过程（因为可能 promise 中还有 promise）直到是普通值为止
-              promiseResolutionProcedure(promise, y, resolve, reject)
-            },
-            (r) => {
-              if (called) return
-              called = true
-              reject(r)
-            },
-          )
-        } else {
-          resolve(x)
-        }
-      } catch (e) {
-        if (called) return
-        called = true
-        reject(e)
-      }
-    } else {
-      // 2.3.4 如果x不是对象或函数，则用x来实现promise
-      resolve(x)
-    }
+  const isMyPromise = (x) => {
+    return typeof x === 'object' && x !== null && x instanceof MyPromise
   }
 
   class MyPromise {
@@ -153,7 +111,7 @@
       let called = undefined
       // 2.3.2 如果x是一个promise，采用其状态 -> 此处与 2.3.3 合并
       // 2.3.3 否则，如果x是一个对象或函数：
-      if ((typeof result === 'object' && result != null) || typeof x === 'function') {
+      if (isMyPromise(x) || (typeof x === 'object' && x !== null) || typeof x === 'function') {
         try {
           const then = x.then
           // 2.3.3.3 如果then是一个函数，则以x作为this，第一个参数为resolvePromise，第二个参数为rejectPromise调用它
@@ -207,7 +165,7 @@
                  * 2.2.7.1 如果onFulfilled或onRejected返回一个值x，则运行Promise Resolution Procedure [[Resolve]](promise2, x)。
                  */
                 const x = onFulfilled(this.value)
-                promiseResolutionProcedure(promise2, x, resolve, reject)
+                this.promiseResolutionProcedure(promise2, x, resolve, reject)
               } catch (e) {
                 /**
                  * 2.2.7.2 如果onFulfilled或onRejected抛出异常e，则promise2必须以e作为原因被拒绝。
@@ -231,7 +189,7 @@
                  * 2.2.7.1 如果onFulfilled或onRejected返回一个值x，则运行Promise Resolution Procedure [[Resolve]](promise2, x)。
                  */
                 const x = onRejected(this.value)
-                promiseResolutionProcedure(promise2, x, resolve, reject)
+                this.promiseResolutionProcedure(promise2, x, resolve, reject)
               } catch (e) {
                 /**
                  * 2.2.7.2 如果onFulfilled或onRejected抛出异常e，则promise2必须以e作为原因被拒绝。
