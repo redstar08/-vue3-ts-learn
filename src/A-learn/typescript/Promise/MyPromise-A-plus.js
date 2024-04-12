@@ -50,11 +50,11 @@
       this.queueTasks = []
 
       const resolve = (value) => {
-        this.runQueueTask(FULFILLED, value)
+        this.#runQueueTask(FULFILLED, value)
       }
 
       const reject = (reason) => {
-        this.runQueueTask(REJECTED, reason)
+        this.#runQueueTask(REJECTED, reason)
       }
 
       try {
@@ -64,7 +64,11 @@
       }
     }
 
-    runQueueTask(status, value) {
+    /**
+     * 用私有函数实现
+     * 状态敲定，清空任务队列
+     */
+    #runQueueTask(status, value) {
       if (this.status === PENDING) {
         this.status = status
         this.value = value
@@ -81,9 +85,10 @@
     }
 
     /**
+     * 用私有函数实现
      * 2.3 Promise 解决过程
      */
-    promiseResolutionProcedure(promise, x, resolve, reject) {
+    #promiseResolutionProcedure(promise, x, resolve, reject) {
       // 2.3.1 如果promise和x引用同一个对象，则以TypeError为原因拒绝promise。
       if (promise === x) {
         return reject(new TypeError('Chaining cycle detected for promise <Promise>'))
@@ -103,7 +108,7 @@
                 if (called) return
                 called = true
                 // 递归解析的过程（因为可能 promise 中还有 promise）直到是普通值为止
-                this.promiseResolutionProcedure(promise, y, resolve, reject)
+                this.#promiseResolutionProcedure(promise, y, resolve, reject)
               },
               (r) => {
                 if (called) return
@@ -146,7 +151,7 @@
                  * 2.2.7.1 如果onFulfilled或onRejected返回一个值x，则运行Promise Resolution Procedure [[Resolve]](promise2, x)。
                  */
                 const x = onFulfilled(this.value)
-                this.promiseResolutionProcedure(promise2, x, resolve, reject)
+                this.#promiseResolutionProcedure(promise2, x, resolve, reject)
               } catch (e) {
                 /**
                  * 2.2.7.2 如果onFulfilled或onRejected抛出异常e，则promise2必须以e作为原因被拒绝。
@@ -170,7 +175,7 @@
                  * 2.2.7.1 如果onFulfilled或onRejected返回一个值x，则运行Promise Resolution Procedure [[Resolve]](promise2, x)。
                  */
                 const x = onRejected(this.value)
-                this.promiseResolutionProcedure(promise2, x, resolve, reject)
+                this.#promiseResolutionProcedure(promise2, x, resolve, reject)
               } catch (e) {
                 /**
                  * 2.2.7.2 如果onFulfilled或onRejected抛出异常e，则promise2必须以e作为原因被拒绝。
