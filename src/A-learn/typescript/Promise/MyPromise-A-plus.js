@@ -42,45 +42,45 @@
     return x !== null && typeof x === 'object' && typeof x.then === 'function'
   }
 
-  const promiseResolutionProcedure = (promise2, result, resolve, reject) => {
-    // 自己等待自己完成是错误的实现，用一个类型错误，结束掉 promise
-    if (promise2 === result) {
-      return reject(new TypeError('Chaining cycle detected for promise #<Promise>'))
+  const promiseResolutionProcedure = (promise, x, resolve, reject) => {
+    // 2.3.1 如果promise和x引用同一个对象，则以TypeError为原因拒绝promise。
+    if (promise === x) {
+      return reject(new TypeError('Chaining cycle detected for promise <Promise>'))
     }
+
     let called = undefined
-    // 对象需要判断一下是不是 Promise 对象，或者 thenable 对象
-    if ((typeof result === 'object' && result != null) || typeof result === 'function') {
+    // 2.3.2 如果x是一个promise，采用其状态 -> 此处与 2.3.3 合并
+    // 2.3.3 否则，如果x是一个对象或函数：
+    if ((typeof result === 'object' && result != null) || typeof x === 'function') {
       try {
-        const then = result.then
-        // 如果 result.then 是一个函数，就说明是 Promise 对象，或者 thenable 对象
+        const then = x.then
+        // 2.3.3.3 如果then是一个函数，则以x作为this，第一个参数为resolvePromise，第二个参数为rejectPromise调用它
         if (typeof then === 'function') {
-          // 不要写成 result.then，直接 then.call 就可以了 因为 x.then 会再次取值，Object.defineProperty
           then.call(
-            result,
-            (promise3) => {
+            x,
+            (y) => {
               if (called) return
               called = true
               // 递归解析的过程（因为可能 promise 中还有 promise）直到是普通值为止
-              promiseResolutionProcedure(promise2, promise3, resolve, reject)
+              promiseResolutionProcedure(promise, y, resolve, reject)
             },
-            (reason) => {
+            (r) => {
               if (called) return
               called = true
-              reject(reason)
+              reject(r)
             },
           )
         } else {
-          // 如果不是 function, 那么说明只是普通对象，并不是 Promise 对象，或者 thenable 对象, 当普通值处理
-          resolve(result)
+          resolve(x)
         }
-      } catch (error) {
+      } catch (e) {
         if (called) return
         called = true
-        reject(error)
+        reject(e)
       }
     } else {
-      // 不是对象，那就是普通值或者函数，直接 resolve 作为结果
-      resolve(result)
+      // 2.3.4 如果x不是对象或函数，则用x来实现promise
+      resolve(x)
     }
   }
 
@@ -151,10 +151,9 @@
       }
 
       let called = undefined
-
       // 2.3.2 如果x是一个promise，采用其状态 -> 此处与 2.3.3 合并
       // 2.3.3 否则，如果x是一个对象或函数：
-      if (isPromiseOrThenable(x) || typeof x === 'object' || typeof x === 'function') {
+      if ((typeof result === 'object' && result != null) || typeof x === 'function') {
         try {
           const then = x.then
           // 2.3.3.3 如果then是一个函数，则以x作为this，第一个参数为resolvePromise，第二个参数为rejectPromise调用它
