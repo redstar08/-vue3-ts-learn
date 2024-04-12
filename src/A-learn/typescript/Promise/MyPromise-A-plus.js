@@ -39,7 +39,7 @@
    * 检测 Promise 对象
    */
   const isPromiseOrThenable = (x) => {
-    return typeof x === 'object' && x && typeof x.then === 'function'
+    return x !== null && typeof x === 'object' && typeof x.then === 'function'
   }
 
   const promiseResolutionProcedure = (promise2, result, resolve, reject) => {
@@ -61,7 +61,7 @@
               if (called) return
               called = true
               // 递归解析的过程（因为可能 promise 中还有 promise）直到是普通值为止
-              resolvePromise(promise2, promise3, resolve, reject)
+              promiseResolutionProcedure(promise2, promise3, resolve, reject)
             },
             (reason) => {
               if (called) return
@@ -147,18 +147,18 @@
     promiseResolutionProcedure(promise, x, resolve, reject) {
       // 2.3.1 如果promise和x引用同一个对象，则以TypeError为原因拒绝promise。
       if (promise === x) {
-        throw new TypeError('Chaining cycle detected for promise <Promise>')
+        return reject(new TypeError('Chaining cycle detected for promise <Promise>'))
       }
 
       let called = undefined
 
-      // 2.3.2 如果x是一个promise，采用其状态
+      // 2.3.2 如果x是一个promise，采用其状态 -> 此处与 2.3.3 合并
       // 2.3.3 否则，如果x是一个对象或函数：
       if (isPromiseOrThenable(x) || typeof x === 'object' || typeof x === 'function') {
         try {
           const then = x.then
+          // 2.3.3.3 如果then是一个函数，则以x作为this，第一个参数为resolvePromise，第二个参数为rejectPromise调用它
           if (typeof then === 'function') {
-            // 2.3.3.3 如果then是一个函数，则以x作为this，第一个参数为resolvePromise，第二个参数为rejectPromise调用它
             then.call(
               x,
               (y) => {
@@ -196,21 +196,13 @@
      * 2.2.5 onFulfilled和onRejected必须作为函数被调用（即没有this值）。
      */
     then(onFulfilled, onRejected) {
-      onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : (result) => result
-      onRejected =
-        typeof onRejected === 'function'
-          ? onRejected
-          : (reason) => {
-              throw reason
-            }
-
       /**
        * 2.2.7 then方法必须返回一个promise
        */
       const promise2 = new MyPromise((resolve, reject) => {
         const resolveTask = () => {
           runMicroTask(() => {
-            if (1) {
+            if (typeof onFulfilled === 'function') {
               try {
                 /**
                  * 2.2.7.1 如果onFulfilled或onRejected返回一个值x，则运行Promise Resolution Procedure [[Resolve]](promise2, x)。
@@ -234,7 +226,7 @@
 
         const rejectTask = () => {
           runMicroTask(() => {
-            if (1) {
+            if (typeof onRejected === 'function') {
               try {
                 /**
                  * 2.2.7.1 如果onFulfilled或onRejected返回一个值x，则运行Promise Resolution Procedure [[Resolve]](promise2, x)。
@@ -257,74 +249,16 @@
         }
 
         if (this.status === FULFILLED) {
-          runMicroTask(() => {
-            try {
-              /**
-               * 2.2.7.1 如果onFulfilled或onRejected返回一个值x，则运行Promise Resolution Procedure [[Resolve]](promise2, x)。
-               */
-              const x = onFulfilled(this.value)
-              promiseResolutionProcedure(promise2, x, resolve, reject)
-            } catch (e) {
-              /**
-               * 2.2.7.2 如果onFulfilled或onRejected抛出异常e，则promise2必须以e作为原因被拒绝。
-               */
-              reject(e)
-            }
-          })
-          // resolveTask()
+          resolveTask()
         }
 
         if (this.status === REJECTED) {
-          runMicroTask(() => {
-            try {
-              /**
-               * 2.2.7.1 如果onFulfilled或onRejected返回一个值x，则运行Promise Resolution Procedure [[Resolve]](promise2, x)。
-               */
-              const x = onRejected(this.value)
-              promiseResolutionProcedure(promise2, x, resolve, reject)
-            } catch (e) {
-              /**
-               * 2.2.7.2 如果onFulfilled或onRejected抛出异常e，则promise2必须以e作为原因被拒绝。
-               */
-              reject(e)
-            }
-          })
-          // rejectTask()
+          rejectTask()
         }
 
         if (this.status === PENDING) {
-          this.onResolvedCallbacks.push(() => {
-            runMicroTask(() => {
-              try {
-                /**
-                 * 2.2.7.1 如果onFulfilled或onRejected返回一个值x，则运行Promise Resolution Procedure [[Resolve]](promise2, x)。
-                 */
-                const x = onFulfilled(this.value)
-                promiseResolutionProcedure(promise2, x, resolve, reject)
-              } catch (e) {
-                /**
-                 * 2.2.7.2 如果onFulfilled或onRejected抛出异常e，则promise2必须以e作为原因被拒绝。
-                 */
-                reject(e)
-              }
-            })
-          })
-          this.onRejectedCallbacks.push(() => {
-            runMicroTask(() => {
-              try {
-                /**
-                 * 2.2.7.1 如果onFulfilled或onRejected返回一个值x，则运行Promise Resolution Procedure [[Resolve]](promise2, x)。
-                 */
-                const x = onRejected(this.value)
-                promiseResolutionProcedure(promise2, x, resolve, reject)
-              } catch (e) {
-                /**
-                 * 2.2.7.2 如果onFulfilled或onRejected抛出异常e，则promise2必须以e作为原因被拒绝。
-                 */
-                reject(e)
-              }
-            })
-          })
+          this.onResolvedCallbacks.push(resolveTask)
+          this.onRejectedCallbacks.push(rejectTask)
         }
       })
 
