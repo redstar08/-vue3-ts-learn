@@ -152,14 +152,14 @@
        * 2.2.7 then方法必须返回一个promise
        */
       const promise2 = new MyPromise((resolve, reject) => {
-        const resolveTask = () => {
+        const settledTask = (callback, settled) => {
           runMicroTask(() => {
-            if (typeof onFulfilled === 'function') {
+            if (typeof callback === 'function') {
               try {
                 /**
                  * 2.2.7.1 如果onFulfilled或onRejected返回一个值x，则运行Promise Resolution Procedure [[Resolve]](promise2, x)。
                  */
-                const x = onFulfilled(this.value)
+                const x = callback(this.value)
                 this.#promiseResolutionProcedure(promise2, x, resolve, reject)
               } catch (e) {
                 /**
@@ -171,35 +171,19 @@
             } else {
               /**
                * 2.2.7.3 如果onFulfilled不是一个函数且promise1被实现，则promise2必须以与promise1相同的值被实现。
+               * 2.2.7.4 如果onRejected不是一个函数且promise1被拒绝，则promise2必须以与promise1相同的原因被拒绝。
                */
-              resolve(this.value)
+              settled(this.value)
             }
           })
         }
 
+        const resolveTask = () => {
+          settledTask(onFulfilled, resolve)
+        }
+
         const rejectTask = () => {
-          runMicroTask(() => {
-            if (typeof onRejected === 'function') {
-              try {
-                /**
-                 * 2.2.7.1 如果onFulfilled或onRejected返回一个值x，则运行Promise Resolution Procedure [[Resolve]](promise2, x)。
-                 */
-                const x = onRejected(this.value)
-                this.#promiseResolutionProcedure(promise2, x, resolve, reject)
-              } catch (e) {
-                /**
-                 * 2.2.7.2 如果onFulfilled或onRejected抛出异常e，则promise2必须以e作为原因被拒绝。
-                 */
-                // throw e
-                reject(e)
-              }
-            } else {
-              /**
-               * 2.2.7.4 如果onRejected不是一个函数且promise1被拒绝，则promise2必须以与promise1相同的原因被拒绝。
-               */
-              reject(this.value)
-            }
-          })
+          settledTask(onRejected, reject)
         }
 
         if (this.status === FULFILLED) {
