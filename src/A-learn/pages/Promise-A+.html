@@ -87,6 +87,17 @@
         return 3
       })
 
+      const p31 = p3
+        .then((value) => {
+          console.log('p31 -> p3.then -> run', value)
+          throw new Error({ message: 'p3.then -> throw error' })
+          // return MyPromise.reject({ p31: 'then -> return reject promise' })
+        })
+        .catch((e) => {
+          console.log('p3.then.catch -> run', e)
+          return MyPromise.reject({ p31: 'p3.then.catch -> return reject promise', e })
+        })
+
       setTimeout(() => {
         const p4 = p1.then((value) => {
           console.log('p4 -> p1.then -> run', value)
@@ -101,6 +112,15 @@
       }, 1000)
 
       console.log('p1 ->', p1, p2, p3, Promise.resolve(1))
+      console.log('p31', p31)
+      setTimeout(() => {
+        console.log('MyPromise.all -> ', MyPromise.all([p1, p2, p3]))
+        console.log('MyPromise.all -> ', MyPromise.all([p3, p31]))
+        console.log('MyPromise.allSettled -> ', MyPromise.allSettled([p1, p2, p3, p31]))
+        console.log('MyPromise.any -> ', MyPromise.any([p1, p2, p3, p31]))
+        console.log('MyPromise.any -> ', MyPromise.any([p31, Promise.reject(32)]))
+        console.log('MyPromise.race -> ', MyPromise.race([p1, p31, p1, Promise.reject(32)]))
+      }, 1000)
     </script>
   </body>
 </html>

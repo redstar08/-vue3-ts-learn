@@ -11,9 +11,9 @@
     root.MyPromise = factory()
   }
 })(this, function () {
-  const PENDING = 'PENDING'
-  const FULFILLED = 'FULFILLED'
-  const REJECTED = 'REJECTED'
+  const PENDING = 'pending'
+  const FULFILLED = 'fulfilled'
+  const REJECTED = 'rejected'
 
   /* 微任务中将运行的代码 */
   const runMicroTask = (task) => {
@@ -205,6 +205,12 @@
       return promise2
     }
 
+    /**
+     * 返回一个新的 Promise，无论当前的 promise 状态如何，这个新的 promise 在返回时总是处于待定（pending）状态。
+     * 如果调用了 onRejected，则返回的 promise 将根据此调用的返回值进行兑现，或者使用此调用引发的错误进行拒绝。
+     * 如果当前的 promise 已兑现，则 onRejected 不会被调用，并且返回的 promise 具有相同的兑现值。
+     * 此方法是 Promise.prototype.then(undefined, onRejected) 的一种简写形式。
+     */
     catch(onRejected) {
       return this.then(undefined, onRejected)
     }
@@ -261,17 +267,160 @@
   }
 
   /**
+   * 实现 ES 规范的 Promise.all
+   * Promise.all() 静态方法接受一个 Promise 可迭代对象作为输入，并返回一个 Promise。
+   * 当所有输入的 Promise 都被兑现时，返回的 Promise 也将被兑现（即使传入的是一个空的可迭代对象），并返回一个包含所有兑现值的数组。
+   * 如果输入的任何 Promise 被拒绝，则返回的 Promise 将被拒绝，并带有第一个被拒绝的原因。
+   */
+  MyPromise.all = function (iterable) {
+    const promises = [...iterable]
+    const totalCount = promises.length
+
+    return new MyPromise((resolve, reject) => {
+      const results = []
+      let completedCount = 0
+      let isSettled = false
+
+      promises.forEach((p, i) => {
+        p.then(
+          (value) => {
+            results[i] = value
+            completedCount++
+            if (completedCount === totalCount) {
+              resolve(results)
+            }
+          },
+          (reason) => {
+            if (!isSettled) {
+              reject(reason)
+            }
+          },
+        )
+      })
+    })
+  }
+
+  /**
+   * 实现 ES 规范的 Promise.allSettled
+   * Promise.allSettled() 静态方法将一个 Promise 可迭代对象作为输入，并返回一个单独的 Promise。
+   * 当所有输入的 Promise 都已敲定时（包括传入空的可迭代对象时），返回的 Promise 将被兑现，并带有描述每个 Promise 结果的对象数组。
+   */
+  MyPromise.allSettled = function (iterable) {
+    const promises = [...iterable]
+    const totalCount = promises.length
+
+    return new MyPromise((resolve, reject) => {
+      const results = []
+      let settledCount = 0
+
+      promises.forEach((p, i) => {
+        p.then(
+          (value) => {
+            results[i] = { status: FULFILLED, value }
+            settledCount++
+            if (settledCount === totalCount) {
+              resolve(results)
+            }
+          },
+          (reason) => {
+            results[i] = { status: REJECTED, reason }
+            settledCount++
+            if (settledCount === totalCount) {
+              resolve(results)
+            }
+          },
+        )
+      })
+    })
+  }
+
+  /**
+   * Promise.any() 静态方法将一个 Promise 可迭代对象作为输入，并返回一个 Promise。
+   * 当输入的任何一个 Promise 兑现时，这个返回的 Promise 将会兑现，并返回第一个兑现的值。
+   * 当所有输入 Promise 都被拒绝（包括传递了空的可迭代对象）时，它会以一个包含拒绝原因数组的 AggregateError 拒绝。
+   */
+  MyPromise.any = function (iterable) {
+    const promises = [...iterable]
+    const totalCount = promises.length
+
+    return new MyPromise((resolve, reject) => {
+      const errors = []
+      let settledCount = 0
+      let isSettled = false
+
+      promises.forEach((p, i) => {
+        p.then(
+          (value) => {
+            if (!isSettled) {
+              resolve(value)
+            }
+          },
+          (reason) => {
+            errors[i] = reason
+            settledCount++
+            if (settledCount === totalCount) {
+              reject(errors)
+            }
+          },
+        )
+      })
+    })
+  }
+
+  /**
+   * Promise.race() 静态方法接受一个 promise 可迭代对象作为输入，并返回一个 Promise。
+   * 这个返回的 promise 会随着第一个 promise 的敲定而敲定。
+   */
+  MyPromise.race = function (iterable) {
+    const promises = [...iterable]
+
+    return new MyPromise((resolve, reject) => {
+      let isSettled = false
+
+      promises.forEach((p) => {
+        p.then(
+          (value) => {
+            if (!isSettled) {
+              isSettled = true
+              resolve(value)
+            }
+          },
+          (reason) => {
+            if (!isSettled) {
+              isSettled = true
+              reject(reason)
+            }
+          },
+        )
+      })
+    })
+  }
+
+  /**
+   * Promise.withResolvers() 静态方法返回一个对象
+   * 其包含一个新的 Promise 对象和两个函数，用于解决或拒绝它，对应于传入给 Promise() 构造函数执行器的两个参数。
+   */
+  MyPromise.withResolvers = function () {
+    const resolvers = {}
+    resolvers.promise = new MyPromise((resolve, reject) => {
+      resolvers.resolve = resolve
+      resolvers.reject = reject
+    })
+    return resolvers
+  }
+
+  /**
    * 测试是否符合 Promise/A+ 规范
    * Promise/A+ spec https://promisesaplus.com.cn/
    * promises-aplus-tests https://github.com/promises-aplus/promises-tests
    */
   MyPromise.deferred = function () {
-    const defer = {}
-    defer.promise = new MyPromise((resolve, reject) => {
-      defer.resolve = resolve
-      defer.reject = reject
-    })
-    return defer
+    // const defer = {}
+    // defer.promise = new MyPromise((resolve, reject) => {
+    //   defer.resolve = resolve
+    //   defer.reject = reject
+    // })
+    return MyPromise.withResolvers()
   }
 
   return MyPromise
