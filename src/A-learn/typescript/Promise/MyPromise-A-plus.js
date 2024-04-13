@@ -102,6 +102,7 @@
       }
 
       let called = undefined
+      // console.log('promiseResolutionProcedure -> ', promise, x, called)
       // 2.3.2 如果x是一个promise，采用其状态 -> 此处与 2.3.3 合并
       // 2.3.3 否则，如果x是一个对象或函数：
       if (isMyPromise(x) || (typeof x === 'object' && x !== null) || typeof x === 'function') {
@@ -260,19 +261,19 @@
     if (typeof value === 'object' && value !== null) {
       const then = value.then
       if (then === 'function') {
-        return new Promise((resolve, reject) => {
+        return new MyPromise((resolve, reject) => {
           then.call(value, resolve, reject)
         })
       }
     }
-    return new Promise((resolve) => resolve(value))
+    return new MyPromise((resolve) => resolve(value))
   }
 
   /**
    * 实现 ES 规范的 Promise.reject
    */
   MyPromise.reject = function (reason) {
-    return new Promise((resolve, reject) => reject(reason))
+    return new MyPromise((resolve, reject) => reject(reason))
   }
 
   /**

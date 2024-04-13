@@ -88,14 +88,16 @@
       })
 
       setTimeout(() => {
-        const p4 = p1
-          .then((value) => {
-            console.log('p4 -> p1.then -> run', value)
-          })
-          .finally(() => {
-            console.log('p4 -> p4.finally -> run', value)
-          })
-        console.log('setTimeout > 1000 -> p4', p4)
+        const p4 = p1.then((value) => {
+          console.log('p4 -> p1.then -> run', value)
+          // return MyPromise.reject({ p4: 'then -> return reject promise' })
+          return MyPromise.resolve({ p4: 'then -> return resolve promise' })
+          // return { p4: 'then -> return object' }
+        })
+        const p4finally = p4.finally(() => {
+          console.log('p4 -> p4.finally -> run')
+        })
+        console.log('setTimeout > 1000 -> p4 p4finally', p4, p4finally)
       }, 1000)
 
       console.log('p1 ->', p1, p2, p3, Promise.resolve(1))
