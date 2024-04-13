@@ -40,6 +40,11 @@
     return typeof x === 'object' && x !== null && x instanceof MyPromise
   }
 
+  /**
+   * MDN https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise
+   * Promise/A+ spec https://promisesaplus.com.cn/
+   * ES6 的 Promsie 和 Promise A+ 规范不一样，一个是官方标准，一个是社区规范它们都是 thenable 对象
+   */
   class MyPromise {
     constructor(executor) {
       // 初始状态为 PENDING
@@ -91,7 +96,9 @@
     #promiseResolutionProcedure(promise, x, resolve, reject) {
       // 2.3.1 如果promise和x引用同一个对象，则以TypeError为原因拒绝promise。
       if (promise === x) {
-        return reject(new TypeError('Chaining cycle detected for promise <Promise>'))
+        const e = new TypeError('Chaining cycle detected for promise <Promise>')
+        // throw e
+        return reject(e)
       }
 
       let called = undefined
@@ -122,6 +129,7 @@
         } catch (e) {
           if (called) return
           called = true
+          // throw e
           reject(e)
         }
       } else {
@@ -156,6 +164,7 @@
                 /**
                  * 2.2.7.2 如果onFulfilled或onRejected抛出异常e，则promise2必须以e作为原因被拒绝。
                  */
+                // throw e
                 reject(e)
               }
             } else {
@@ -180,6 +189,7 @@
                 /**
                  * 2.2.7.2 如果onFulfilled或onRejected抛出异常e，则promise2必须以e作为原因被拒绝。
                  */
+                // throw e
                 reject(e)
               }
             } else {
@@ -214,7 +224,19 @@
       return this.then(undefined, onRejected)
     }
 
+    /**
+     * 立即返回一个新的 Promise。
+     * 无论当前 promise 的状态如何，此新的 promise 在返回时始终处于待定（pending）状态。
+     * 如果 onFinally 抛出错误或返回被拒绝的 promise，则新的 promise 将使用该值进行拒绝。
+     * 否则，新的 promise 将以与当前 promise 相同的状态敲定（settled）。
+     * 如果 onFinally 不是函数，则调用 then() 时使用 onFinally 同时作为两个参数
+     */
     finally(onFinally) {
+      // this.then 执行的时候 如果 onFinally 执行报错会被捕获，所以无需处理
+      // if (typeof onFinally !== 'function') {
+      //   return this.then(onFinally, onFinally)
+      // }
+
       return this.then(
         (value) => {
           return MyPromise.resolve(onFinally()).then(() => value)
@@ -229,8 +251,33 @@
   }
 
   /**
+   * 实现 ES 规范的 Promise.resolve
+   */
+  MyPromise.resolve = function (value) {
+    if (isMyPromise(value)) {
+      return value
+    }
+    if (typeof value === 'object' && value !== null) {
+      const then = value.then
+      if (then === 'function') {
+        return new Promise((resolve, reject) => {
+          then.call(value, resolve, reject)
+        })
+      }
+    }
+    return new Promise((resolve) => resolve(value))
+  }
+
+  /**
+   * 实现 ES 规范的 Promise.reject
+   */
+  MyPromise.reject = function (reason) {
+    return new Promise((resolve, reject) => reject(reason))
+  }
+
+  /**
    * 测试是否符合 Promise/A+ 规范
-   * https://promisesaplus.com.cn/
+   * Promise/A+ spec https://promisesaplus.com.cn/
    * promises-aplus-tests https://github.com/promises-aplus/promises-tests
    */
   MyPromise.deferred = function () {
