@@ -49,7 +49,17 @@
       <div class="float-l">浮动的元素</div>
     </div>
 
-    <script type="text/javascript" src=""></script>
+    <script>
+      // 监听父窗口发送的消息
+      window.addEventListener('message', function (event) {
+        console.log('Message received from Parent Window:', event.data)
+        // 回复消息给父窗口
+        const message = {
+          text: 'Hello from container-block',
+        }
+        event.source.postMessage(message, '*')
+      })
+    </script>
     <script type="text/javascript"></script>
   </body>
 </html>

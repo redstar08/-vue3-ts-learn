@@ -11,8 +11,19 @@
 
   <body style="text-align: center">
     <h1>大文件分片上传</h1>
-
-    <script type="text/javascript" src=""></script>
+    <p id="pText"></p>
+    <script>
+      // 监听父窗口发送的消息
+      window.addEventListener('message', function (event) {
+        console.log('Message received from Parent Window:', event.data)
+        pText.innerText = JSON.stringify(event.data)
+        // 回复消息给父窗口
+        const message = {
+          text: 'Hello from splice-file-upload',
+        }
+        event.source.postMessage(message, event.origin)
+      })
+    </script>
     <script type="text/javascript"></script>
   </body>
 </html>

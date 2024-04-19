@@ -82,6 +82,9 @@ devDependencies:
   promises-aplus-tests:
     specifier: ^2.1.2
     version: 2.1.2
+  sass:
+    specifier: ^1.75.0
+    version: 1.75.0
   tailwindcss:
     specifier: ^3.3.2
     version: 3.4.3
@@ -93,7 +96,7 @@ devDependencies:
     version: 4.7.4
   vite:
     specifier: ^3.0.9
-    version: 3.2.10(@types/node@16.18.96)
+    version: 3.2.10(@types/node@16.18.96)(sass@1.75.0)
   vue-tsc:
     specifier: ^0.40.7
     version: 0.40.13(typescript@4.7.4)
@@ -1676,7 +1679,7 @@ packages:
       vite: ^3.0.0
       vue: ^3.2.25
     dependencies:
-      vite: 3.2.10(@types/node@16.18.96)
+      vite: 3.2.10(@types/node@16.18.96)(sass@1.75.0)
       vue: 3.4.21(typescript@4.7.4)
     dev: true
 
@@ -3198,6 +3201,10 @@ packages:
     engines: {node: '>= 4'}
     dev: true
 
+  /immutable@4.3.5:
+    resolution: {integrity: sha512-8eabxkth9gZatlwl5TBuJnCsoTADlL6ftEr7A4qgdaTsPyreilDSnUk57SO+jfKcNtxPa22U5KK6DSeAYhpBJw==}
+    dev: true
+
   /import-fresh@3.3.0:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}
     engines: {node: '>=6'}
@@ -4163,6 +4170,16 @@ packages:
     deprecated: This package has been deprecated in favour of @sinonjs/samsam
     dev: true
 
+  /sass@1.75.0:
+    resolution: {integrity: sha512-ShMYi3WkrDWxExyxSZPst4/okE9ts46xZmJDSawJQrnte7M1V9fScVB+uNXOVKRBt0PggHOwoZcn8mYX4trnBw==}
+    engines: {node: '>=14.0.0'}
+    hasBin: true
+    dependencies:
+      chokidar: 3.6.0
+      immutable: 4.3.5
+      source-map-js: 1.2.0
+    dev: true
+
   /semver@5.7.2:
     resolution: {integrity: sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g==}
     hasBin: true
@@ -4688,7 +4705,7 @@ packages:
     engines: {node: '>= 0.8'}
     dev: false
 
-  /vite@3.2.10(@types/node@16.18.96):
+  /vite@3.2.10(@types/node@16.18.96)(sass@1.75.0):
     resolution: {integrity: sha512-Dx3olBo/ODNiMVk/cA5Yft9Ws+snLOXrhLtrI3F4XLt4syz2Yg8fayZMWScPKoz12v5BUv7VEmQHnsfpY80fYw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
@@ -4718,6 +4735,7 @@ packages:
       postcss: 8.4.38
       resolve: 1.22.8
       rollup: 2.79.1
+      sass: 1.75.0
     optionalDependencies:
       fsevents: 2.3.3
     dev: true

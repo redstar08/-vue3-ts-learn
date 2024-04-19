@@ -1,46 +1,38 @@
-/**
- * @param {character[][]} board
- * @param {string} word
- * @return {boolean}
- */
-var exist = function (board, word) {
-  const m = board.length
-  const n = board[0].length
-  const len = word.length
-  let ans = false
-  const path = []
-  const dfs = (deepth, i, j) => {
-    if (deepth === len) {
-      return (ans = true)
+let currentComponent = null // 当前正在渲染的组件
+let currentHook = 0 // 当前正在处理的 Hook
+const __hooks = []
+
+function useState(initialValue) {
+  // 获取当前正在渲染的组件
+  const component = currentComponent
+
+  // 初始化或获取当前 Hook 的状态和更新函数
+  let hook = __hooks[currentHook]
+  if (!hook) {
+    hook = {
+      state: initialValue,
+      setState(newValue) {
+        if (typeof newValue === 'function') {
+          hook.state = newValue(hook.state)
+        } else {
+          hook.state = newValue
+        }
+        // 触发重新渲染
+        // 在真实的 React 中，这里会调用调度器来进行更新
+        // 并在批处理过程中处理所有状态更新
+        render(component)
+      },
     }
-    if (i < 0 || i >= m || j < 0 || j >= n) {
-      return
-    }
-    const letter = board[i][j]
-    if (letter === word[deepth]) {
-      path.push(letter)
-      dfs(deepth + 1, i + 1, j)
-      dfs(deepth + 1, i - 1, j)
-      dfs(deepth + 1, i, j + 1)
-      dfs(deepth + 1, i, j - 1)
-      path.pop()
-    }
+    __hooks[currentHook++] = hook
   }
-  for (let i = 0; i < m; i++) {
-    for (let j = 0; j < n; j++) {
-      if (board[i][j] === word[0]) {
-        dfs(0, i, j)
-      }
-    }
-  }
-  return ans
+
+  return [hook.state, hook.setState]
 }
 
-exist(
-  [
-    ['A', 'B', 'C', 'E'],
-    ['S', 'F', 'C', 'S'],
-    ['A', 'D', 'E', 'E'],
-  ],
-  'ABCCED',
-)
+function render(component) {
+  // 模拟重新渲染组件
+  console.log(
+    'Render:',
+    __hooks.map((h) => h.state),
+  )
+}

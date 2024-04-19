@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editable Table</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+      }
+      tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+      tr:hover {
+        background-color: #ddd;
+      }
+      .edit-cell {
+        background-color: skyblue;
+      }
+    </style>
+  </head>
+  <body>
+    <table id="editableTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Age</th>
+          <th>Country</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td contenteditable="true">John</td>
+          <td contenteditable="true">30</td>
+          <td contenteditable="true">USA</td>
+        </tr>
+        <tr>
+          <td contenteditable="true">Jane</td>
+          <td contenteditable="true">25</td>
+          <td contenteditable="true">UK</td>
+        </tr>
+        <tr>
+          <td contenteditable="true">Doe</td>
+          <td contenteditable="true">40</td>
+          <td contenteditable="true">render(row, key, )</td>
+        </tr>
+      </tbody>
+    </table>
+    <hr />
+    <div style="display: flex">
+      <iframe id="childFrame" src="splice-file-upload.html" width="375" height="667"></iframe>
+      <iframe id="childFrame2" src="container-block.html" width="375" height="667"></iframe>
+      <div>
+        <button onclick="sendMessageToChild()">Send Message to Child</button>
+        <button onclick="sendMessageToChild(true)">JSON.stringify Send Message to Child</button>
+      </div>
+    </div>
+    <script>
+      var a = {
+        a: 1,
+      }
+      var b = {
+        b: 2,
+      }
+      a.b = b
+      b.a = a
+      var demo = {
+        // a,
+        // b,
+        text: 'Hello from Parent Window!',
+        // func: () => {},
+        map: new Map([
+          [a, 1],
+          [b, 2],
+        ]),
+      }
+      // 获取子窗口的引用
+      const childFrame = document.getElementById('childFrame').contentWindow
+
+      // 发送消息给子窗口
+      function sendMessageToChild(deal = false) {
+        const data = deal ? JSON.parse(JSON.stringify(demo)) : demo
+        childFrame.postMessage(data, '*')
+        childFrame2.contentWindow.postMessage(data, '*')
+      }
+
+      // 监听子窗口发送的消息
+      window.addEventListener('message', function (event) {
+        console.log('Message received from Child Window:', event.data)
+      })
+    </script>
+
+    <script>
+      const columns = []
+
+      const table = document.getElementById('editableTable')
+
+      // 监听单元格的点击事件，使其可编辑
+      table.addEventListener('click', function (event) {
+        const cell = event.target
+        console.log(event)
+        console.log('cell', cell, columns)
+        cell.classList.add('edit-cell') // 添加编辑样式
+      })
+
+      // 监听单元格的失去焦点事件，更新表格数据
+      table.addEventListener(
+        'blur',
+        function (event) {
+          const cell = event.target
+          console.log(event)
+          console.log('cell', cell, columns)
+          cell.classList.remove('edit-cell') // 移除编辑样式
+        },
+        true,
+      )
+    </script>
+  </body>
+</html>

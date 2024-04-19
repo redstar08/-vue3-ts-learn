@@ -24,6 +24,11 @@ const router = createRouter({
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/SocketIo.vue'),
     },
+    {
+      path: '/demo',
+      name: 'demo',
+      component: () => import('../views/Demo.vue'),
+    },
   ],
 })
 
