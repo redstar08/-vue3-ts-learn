@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
     <title>Document</title>
     <link rel="stylesheet" type="text/css" href="" />
+    <!-- float 实现 -->
     <!-- <style>
       body {
         margin: 0;
@@ -55,7 +56,8 @@
         background-color: aquamarine;
       }
     </style> -->
-    <style>
+    <!-- flex 实现 -->
+    <!-- <style>
       body {
         margin: 0;
         padding: 0;
@@ -76,6 +78,57 @@
         height: calc(100vh - 200px);
       }
       .center {
+        width: 100%;
+        height: 100%;
+        background-color: gray;
+      }
+
+      .left {
+        position: absolute;
+        left: 0;
+        width: 100px;
+        height: 100%;
+        background-color: pink;
+      }
+
+      .right {
+        position: absolute;
+        right: 0;
+        width: 100px;
+        height: 100%;
+        background-color: skyblue;
+      }
+      footer {
+        height: 100px;
+        background-color: aquamarine;
+      }
+    </style> -->
+    <!-- grid 实现 -->
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        text-align: center;
+        min-width: 300px;
+      }
+      header {
+        height: 100px;
+        background-color: chocolate;
+      }
+      main {
+        overflow: hidden;
+        position: relative;
+        padding-left: 100px;
+        padding-right: 100px;
+        display: grid;
+        height: calc(100vh - 200px);
+      }
+      .center {
+        grid-template-rows: 1fr;
+        grid-template-columns: 1fr;
         width: 100%;
         height: 100%;
         background-color: gray;
