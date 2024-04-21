@@ -19,6 +19,8 @@ var buildTree = function (preorder, inorder) {
     index.set(inorder[i], i)
   }
 
+  // root-left-right
+  // left-root-right
   function dfs(preL, preR, inL, inR) {
     if (preL === preR) {
       // 空节点
