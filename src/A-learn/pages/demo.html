@@ -4,43 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Element Visibility Check</title>
-    <style>
-      #target {
-        width: 100px;
-        height: 100px;
-        background-color: red;
-        margin-top: 1000px;
-      }
-    </style>
+    <style></style>
   </head>
-  <body style="height: 2000px">
-    <div id="target">123</div>
+  <body>
+    <h1>Current: src/A-learn/pages/demo.html</h1>
+
+    <div id="target">123123</div>
 
     <script>
       const signal = new AbortController()
-
-      function isInViewport(element) {
-        const elementTop = element.offsetTop
-        const elementBottom = elementTop + element.clientHeight
-        const windowTop = window.pageYOffset || document.documentElement.scrollTop
-        const windowBottom = windowTop + window.innerHeight
-        return elementTop < windowBottom && elementBottom > windowTop
-      }
-
-      document.addEventListener('DOMContentLoaded', function () {
-        const targetElement = document.getElementById('target')
-
-        function checkVisibility() {
-          if (isInViewport(targetElement)) {
-            console.log('Element is in the viewport!')
-          } else {
-            console.log('Element is not in the viewport!')
-          }
-        }
-
-        window.addEventListener('scroll', checkVisibility)
-        checkVisibility() // Check visibility on page load
-      })
     </script>
   </body>
 </html>

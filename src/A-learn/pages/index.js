@@ -1,3 +1,5 @@
+const modules = import.meta.glob('./*.*?url', { eager: true })
+console.log('modules', modules)
 const lis = __HTML_PAGES__.map((path) => {
   const li = document.createElement('li')
   const a = document.createElement('a')
