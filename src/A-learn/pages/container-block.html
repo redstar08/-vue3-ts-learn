@@ -7,6 +7,11 @@
     <title>Document</title>
     <link rel="stylesheet" type="text/css" href="" />
     <style>
+      body {
+        position: relative;
+        overflow: auto;
+        height: 100vh;
+      }
       .absolute {
         position: absolute;
         top: 100px;
@@ -53,7 +58,7 @@
       // 监听父窗口发送的消息
       window.addEventListener('message', function (event) {
         console.log('Message received from Parent Window:', event.data)
-        // 回复消息给父窗口
+        // 回复消息给父窗口123
         const message = {
           text: 'Hello from container-block',
         }
