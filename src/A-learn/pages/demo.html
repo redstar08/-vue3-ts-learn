@@ -14,9 +14,11 @@
     </style>
   </head>
   <body style="height: 2000px">
-    <div id="target"></div>
+    <div id="target">123</div>
 
     <script>
+      const signal = new AbortController()
+
       function isInViewport(element) {
         const elementTop = element.offsetTop
         const elementBottom = elementTop + element.clientHeight
