@@ -1,6 +1,10 @@
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { readdirSync } from 'node:fs'
+import { resolve } from 'path'
+
+const htmlFiles = readdirSync(resolve(__dirname, 'src/A-learn/pages'))
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -18,5 +22,9 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
+  },
+  define: {
+    // 定义全局数据
+    __HTML_PAGES__: htmlFiles,
   },
 })

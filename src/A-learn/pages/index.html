@@ -10,15 +10,26 @@
       body {
         text-align: center;
       }
+
+      .pages {
+        text-align: left;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+      }
+
+      .pages li {
+        flex: 1;
+        margin: 10px;
+      }
     </style>
   </head>
 
   <body>
     <h1>Current: src/A-learn/pages/index.html</h1>
 
-    <script type="text/javascript">
-      const entrys = new FileReader()
-    </script>
+    <ul class="pages" id="pages"></ul>
+
+    <script type="module" src="./index.js"></script>
 
     <script type="text/javascript">
       const signal = new AbortController()
