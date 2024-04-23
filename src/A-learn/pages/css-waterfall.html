@@ -6,7 +6,9 @@
       body {
         margin: 0;
       }
-      .waterfall-container {
+    </style>
+    <!-- <style>
+      .container {
         /*分几列*/
         column-count: 2;
         width: 100%;
@@ -14,7 +16,7 @@
         column-gap: 10px;
       }
 
-      .waterfall-item {
+      .item {
         break-inside: avoid;
         width: 100%;
         height: 100px;
@@ -25,20 +27,65 @@
         color: #fff;
         font-size: 40px;
       }
+    </style> -->
+    <style>
+      .container {
+        display: flex;
+        flex-flow: column wrap;
+        height: 210vh;
+        counter-reset: my-counter;
+      }
+
+      /* 强制换列 */
+      /* 保证排在 1 的后面和 3 的前面 */
+      .container::before,
+      .container::after {
+        content: '';
+        flex-basis: 100%;
+        width: 0;
+        order: 2;
+        /* width: 1px;
+        background-color: pink; */
+      }
+
+      /* 仅用于打印数字 */
+      .item::before {
+        counter-increment: my-counter;
+        content: counter(my-counter);
+      }
+
+      .item:nth-child(3n + 1) {
+        order: 1;
+      }
+      .item:nth-child(3n + 2) {
+        order: 2;
+      }
+      .item:nth-child(3n) {
+        order: 3;
+      }
+
+      .item {
+        width: calc(33.33% - 30px);
+        margin: 10px;
+        background: #ddd;
+        text-align: center;
+        color: #fff;
+        font-size: 40px;
+      }
     </style>
   </head>
   <body>
-    <div class="waterfall-container">
-      <div class="waterfall-item" style="height: 100px">1</div>
-      <div class="waterfall-item" style="height: 300px">2</div>
-      <div class="waterfall-item" style="height: 400px">3</div>
-      <div class="waterfall-item" style="height: 100px">4</div>
-      <div class="waterfall-item" style="height: 300px">5</div>
-      <div class="waterfall-item" style="height: 600px">6</div>
-      <div class="waterfall-item" style="height: 400px">7</div>
-      <div class="waterfall-item" style="height: 300px">8</div>
-      <div class="waterfall-item" style="height: 700px">9</div>
-      <div class="waterfall-item" style="height: 100px">10</div>
+    <div class="container">
+      <div class="item" style="height: 100px"></div>
+      <div class="item" style="height: 300px"></div>
+      <div class="item" style="height: 400px"></div>
+      <div class="item" style="height: 400px"></div>
+      <div class="item" style="height: 300px"></div>
+      <div class="item" style="height: 600px"></div>
+      <div class="item" style="height: 400px"></div>
+      <div class="item" style="height: 600px"></div>
+      <div class="item" style="height: 300px"></div>
+      <div class="item" style="height: 200px"></div>
     </div>
   </body>
 </html>

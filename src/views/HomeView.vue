@@ -1,8 +1,40 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import TheWelcome from '../components/TheWelcome.vue'
 import AnimateView from './AnimateView.vue'
 import DemoView from './DemoView.vue'
+
+const count = ref(0)
+</script>
+
+<script lang="ts">
+export default {
+  beforeCreate() {
+    console.log('App -> beforeCreate')
+  },
+  created() {
+    console.log('App -> created')
+  },
+  beforeMount() {
+    console.log('App -> beforeMount')
+  },
+  mounted() {
+    console.log('App -> mounted')
+  },
+  beforeUpdate() {
+    console.log('App -> beforeUpdate')
+  },
+  updated() {
+    console.log('App -> updated')
+  },
+  beforeUnmounted() {
+    console.log('App -> beforeUnmounted')
+  },
+  unmounted() {
+    console.log('App -> unmounted')
+  },
+}
 </script>
 
 <template>
@@ -20,6 +52,7 @@ import DemoView from './DemoView.vue'
     </div>
   </header>
   <main>
+    <el-button @click="() => count++">click me {{ count }}</el-button>
     <TheWelcome />
     <div class="w-full h-100px flex flex-col justify-center items-center fixed top-0 left-0">
       <AnimateView />

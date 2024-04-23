@@ -35,9 +35,9 @@ callSomeFunction(obj.foo)
 let { foo, bar } = obj
 foo.value++
 // 生命周期钩子
-onMounted(() => {
-  console.log('`The state.count is: `', n, count, item)
-})
+// onMounted(() => {
+//   console.log('`The state.count is: `', n, count, item)
+// })
 const checkedNames = ref([])
 const msg = ref('')
 // 等价于直接绑定 checkedNames.names
@@ -45,6 +45,35 @@ const msg = ref('')
 
 const handleChange = (value: any) => {
   console.log('handleChange -> ', value)
+}
+</script>
+
+<script lang="ts">
+export default {
+  beforeCreate() {
+    console.log('Demo -> beforeCreate')
+  },
+  created() {
+    console.log('Demo -> created')
+  },
+  beforeMount() {
+    console.log('Demo -> beforeMount')
+  },
+  mounted() {
+    console.log('Demo -> mounted')
+  },
+  beforeUpdate() {
+    console.log('Demo -> beforeUpdate')
+  },
+  updated() {
+    console.log('Demo -> updated')
+  },
+  beforeUnmounted() {
+    console.log('Demo -> beforeUnmounted')
+  },
+  unmounted() {
+    console.log('Demo -> unmounted')
+  },
 }
 </script>
 
