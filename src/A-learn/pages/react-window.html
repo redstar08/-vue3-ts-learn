@@ -102,10 +102,21 @@
         }
         timer = setTimeout(() => {
           const startTop = e.target.scrollTop
-          console.log('startTop -> ', startTop)
+          // console.log('startTop -> ', startTop)
           getCurrentChilds(startTop)
         }, 0)
       })
+    </script>
+
+    <script type="text/javascript">
+      const observer = new PerformanceObserver(function (list, obj) {
+        const entries = list.getEntries()
+        for (let i = 0; i < entries.length; i++) {
+          console.log('entries -> ', entries[i])
+        }
+      })
+      //调用
+      observer.observe({ entryTypes: ['frame', 'navigation', 'resource', 'mark', 'measure', 'paint'] })
     </script>
   </body>
 </html>
