@@ -10,6 +10,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "dayjs": "^1.11.11",
     "element-plus": "^2.2.19",
     "lodash": "^4.17.21",
     "p-limit": "^5.0.0",
